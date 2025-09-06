@@ -17,7 +17,7 @@ if (!geminiApiKey)
 
 const bot = new Bot(token);
 const genAI = new GoogleGenerativeAI(geminiApiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
 // Этот обработчик будет работать, если в сообщении есть фотография
 bot.on('message:photo', async (ctx) => {
