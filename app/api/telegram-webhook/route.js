@@ -3,6 +3,7 @@ export const fetchCache = 'force-no-store';
 
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { fileUrl } from '@grammyjs/files';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -16,13 +17,12 @@ if (!geminiApiKey)
 const bot = new Bot(token);
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 
-// Используем мультимодальную модель, которая умеет работать с аудио
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
 
 // Единая функция для обработки аудио
 async function handleAudio(ctx, file) {
   try {
-    const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+    const fileLink = fileUrl(token, file.file_path); // Используем fileUrl для создания ссылки
     const mimeType = file.mime_type || 'audio/mpeg';
 
     const fetchedResponse = await fetch(fileLink);
@@ -52,14 +52,16 @@ async function handleAudio(ctx, file) {
   }
 }
 
-// Этот обработчик для MP3-файлов и других аудиоформатов
+// Обработчик для MP3-файлов и других аудиоформатов
 bot.on('message:audio', async (ctx) => {
-  await handleAudio(ctx, ctx.message.audio);
+  const file = await ctx.api.getFile(ctx.message.audio.file_id);
+  await handleAudio(ctx, file);
 });
 
-// Этот обработчик для голосовых сообщений (voice)
+// Обработчик для голосовых сообщений (voice)
 bot.on('message:voice', async (ctx) => {
-  await handleAudio(ctx, ctx.message.voice);
+  const file = await ctx.api.getFile(ctx.message.voice.file_id);
+  await handleAudio(ctx, file);
 });
 
 // Выносим логику обработки текста в отдельную функцию
