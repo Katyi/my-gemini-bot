@@ -3,7 +3,7 @@ export const fetchCache = 'force-no-store';
 
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-// import axios from 'axios';
+import axios from 'axios';
 // import { fileUrl } from '@grammyjs/files'; // Импортируем fileUrl
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -84,8 +84,13 @@ bot.on('message:voice', async (ctx) => {
     const file = await ctx.api.getFile(fileId);
     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-    // Отправляем голосовое сообщение по URL
-    await ctx.replyWithVoice(fileLink, {
+    // Скачиваем файл в буфер
+    const voiceBuffer = (
+      await axios.get(fileLink, { responseType: 'arraybuffer' })
+    ).data;
+
+    // Отправляем голосовое сообщение
+    await ctx.replyWithVoice(new InputFile(voiceBuffer), {
       caption: 'Вот ваше голосовое сообщение.',
     });
   } catch (error) {
