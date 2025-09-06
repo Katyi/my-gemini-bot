@@ -3,7 +3,7 @@ export const fetchCache = 'force-no-store';
 
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { fileUrl } from '@grammyjs/files'; // Импортируем fileUrl
+// import { fileUrl } from '@grammyjs/files'; // Импортируем fileUrl
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -23,9 +23,7 @@ bot.on('message:photo', async (ctx) => {
   try {
     const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
     const file = await ctx.api.getFile(fileId);
-
-    // Используем fileUrl для получения прямой ссылки на файл
-    const fileLink = fileUrl(token, file.file_path);
+    const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
     await ctx.reply(`Спасибо за изображение! Вот его URL: ${fileLink}`);
   } catch (error) {
