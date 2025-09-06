@@ -1,4 +1,3 @@
-// app/api/telegram-webhook/route.js
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -37,7 +36,8 @@ export async function POST(req) {
     }
   });
 
-  const webhookHandler = webhookCallback(bot, 'express');
+  // Использование адаптера для Next.js
+  const webhookHandler = webhookCallback(bot, 'next-app');
 
   try {
     await webhookHandler(req);
