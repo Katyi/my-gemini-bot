@@ -84,18 +84,34 @@ bot.on('message:voice', async (ctx) => {
     const file = await ctx.api.getFile(fileId);
     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-    // Скачиваем файл в буфер
-    const voiceBuffer = (
-      await axios.get(fileLink, { responseType: 'arraybuffer' })
-    ).data;
+    // Скачиваем файл в буфер.
+    // Это самый рискованный шаг, но без него не обойтись для Gemini
+    const fetchedResponse = await fetch(fileLink);
+    const data = await fetchedResponse.arrayBuffer();
+    const base64Audio = Buffer.from(data).toString('base64');
 
-    // Отправляем голосовое сообщение
-    await ctx.replyWithVoice(new InputFile(voiceBuffer), {
-      caption: 'Вот ваше голосовое сообщение.',
-    });
+    // Формируем запрос для Gemini
+    const audioPrompt = [
+      {
+        inlineData: {
+          mimeType: 'audio/ogg',
+          data: base64Audio,
+        },
+      },
+      {
+        text: 'Транскрибируй аудио, которое тебе прислали. Отвечай только текстом из аудио.',
+      },
+    ];
+
+    const result = await model.generateContent(audioPrompt);
+    const text = result.response.text();
+
+    await ctx.reply(`Вот расшифровка вашего сообщения:\n\n${text}`);
   } catch (error) {
     console.error('Ошибка при обработке голосового сообщения:', error);
-    await ctx.reply('Произошла ошибка при обработке голосового сообщения.');
+    await ctx.reply(
+      'Произошла ошибка при обработке голосового сообщения. Возможно, файл слишком большой.'
+    );
   }
 });
 
