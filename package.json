@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@grammyjs/files": "^1.1.1",
     "grammy": "^1.38.2",
     "next": "15.5.2",
     "react": "19.1.0",
