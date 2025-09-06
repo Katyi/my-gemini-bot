@@ -19,7 +19,7 @@ const bot = new Bot(token);
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 
 // Выбираем самую стабильную модель
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 // Обработчик сообщений
 bot.on('message:text', async (ctx) => {
