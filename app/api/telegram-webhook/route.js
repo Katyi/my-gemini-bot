@@ -46,6 +46,19 @@ bot.on('message:audio', async (ctx) => {
   }
 });
 
+bot.on('message:voice', async (ctx) => {
+  try {
+    const fileId = ctx.message.voice.file_id;
+    const file = await ctx.api.getFile(fileId);
+    const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+
+    await ctx.reply(`Спасибо за голосовое сообщение! Вот его URL: ${fileLink}`);
+  } catch (error) {
+    console.error('Ошибка при обработке голосового сообщения:', error);
+    await ctx.reply('Произошла ошибка при обработке голосового сообщения.');
+  }
+});
+
 // Этот обработчик остается для текстовых сообщений
 bot.on('message:text', async (ctx) => {
   const prompt = ctx.message.text;
