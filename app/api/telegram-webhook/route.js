@@ -3,9 +3,11 @@ export const fetchCache = 'force-no-store';
 
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Replicate from 'replicate';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const geminiApiKey = process.env.GEMINI_API_KEY;
+const replicateApiKey = process.env.REPLICATE_API_KEY;
 
 if (!token)
   throw new Error('TELEGRAM_BOT_TOKEN environment variable not found.');
@@ -13,24 +15,54 @@ if (!token)
 if (!geminiApiKey)
   throw new Error('GEMINI_API_KEY environment variable not found.');
 
+if (!replicateApiKey)
+  throw new Error('REPLICATE_API_KEY environment variable not found.');
+
 const bot = new Bot(token);
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+const replicate = new Replicate({ auth: replicateApiKey });
+
+// Обработчик для генерации изображений с помощью Stable Diffusion
+bot.command('stable', async (ctx) => {
+  const prompt = ctx.match;
+  if (!prompt) {
+    return ctx.reply(
+      'Пожалуйста, введите описание для изображения после команды /stable.'
+    );
+  }
+
+  try {
+    await ctx.reply(
+      'Генерирую изображение. Это может занять несколько секунд...'
+    );
+
+    // Запрос к Stable Diffusion через Replicate
+    const image = await replicate.run(
+      'stability-ai/stable-diffusion:ac732df8398180b474fe8c581c6af2637a5ab6b57d2de6cd02216b22b10298a1',
+      {
+        input: {
+          prompt: prompt,
+        },
+      }
+    );
+
+    if (image && image[0]) {
+      await ctx.replyWithPhoto(image[0]);
+    } else {
+      await ctx.reply(
+        'Не удалось сгенерировать изображение. Попробуйте еще раз.'
+      );
+    }
+  } catch (error) {
+    console.error('Ошибка при генерации изображения:', error);
+    await ctx.reply(
+      'Произошла ошибка при генерации изображения. Убедитесь, что ваш запрос не нарушает правила безопасности.'
+    );
+  }
+});
 
 // Этот обработчик будет работать, если в сообщении есть фотография
-// bot.on('message:photo', async (ctx) => {
-//   try {
-//     const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
-//     const file = await ctx.api.getFile(fileId);
-//     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
-
-//     await ctx.reply(`Спасибо за изображение! Вот его URL: ${fileLink}`);
-//   } catch (error) {
-//     console.error('Ошибка при обработке изображения:', error);
-//     await ctx.reply('Произошла ошибка при обработке изображения.');
-//   }
-// });
-
 bot.on('message:photo', async (ctx) => {
   try {
     const fileId = ctx.message.photo[ctx.message.photo.length - 1].file_id;
