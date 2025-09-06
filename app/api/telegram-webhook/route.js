@@ -3,7 +3,7 @@ export const fetchCache = 'force-no-store';
 
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import axios from 'axios';
+// import axios from 'axios';
 // import { fileUrl } from '@grammyjs/files'; // Импортируем fileUrl
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -48,19 +48,19 @@ bot.on('message:photo', async (ctx) => {
 // });
 
 // Этот обработчик для аудио (файлы .mp3, .wav и т.д.)
-bot.on('message:audio', async (ctx) => {
-  try {
-    const fileId = ctx.message.audio.file_id;
-    const file = await ctx.api.getFile(fileId);
-    const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+// bot.on('message:audio', async (ctx) => {
+//   try {
+//     const fileId = ctx.message.audio.file_id;
+//     const file = await ctx.api.getFile(fileId);
+//     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-    // Отправляем аудио по URL
-    await ctx.replyWithAudio(fileLink, { caption: 'Вот ваш аудиофайл.' });
-  } catch (error) {
-    console.error('Ошибка при обработке аудио:', error);
-    await ctx.reply('Произошла ошибка при обработке аудио.');
-  }
-});
+//     // Отправляем аудио по URL
+//     await ctx.replyWithAudio(fileLink, { caption: 'Вот ваш аудиофайл.' });
+//   } catch (error) {
+//     console.error('Ошибка при обработке аудио:', error);
+//     await ctx.reply('Произошла ошибка при обработке аудио.');
+//   }
+// });
 
 // Этот обработчик для голосовых сообщений (voice)
 // bot.on('message:voice', async (ctx) => {
@@ -69,13 +69,10 @@ bot.on('message:audio', async (ctx) => {
 //     const file = await ctx.api.getFile(fileId);
 //     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-//     // Скачиваем файл в буфер.
-//     // Это самый рискованный шаг, но без него не обойтись для Gemini
 //     const fetchedResponse = await fetch(fileLink);
 //     const data = await fetchedResponse.arrayBuffer();
 //     const base64Audio = Buffer.from(data).toString('base64');
 
-//     // Формируем запрос для Gemini
 //     const audioPrompt = [
 //       {
 //         inlineData: {
@@ -88,10 +85,13 @@ bot.on('message:audio', async (ctx) => {
 //       },
 //     ];
 
+//     // Шаг 1: Получаем расшифровку от Gemini
 //     const result = await model.generateContent(audioPrompt);
 //     const text = result.response.text();
 
-//     await ctx.reply(`Вот расшифровка вашего сообщения:\n\n${text}`);
+//     // Шаг 2: Отправляем расшифровку в основной текстовый обработчик
+//     // Это как если бы пользователь сам написал этот текст
+//     await handleText(ctx, text);
 //   } catch (error) {
 //     console.error('Ошибка при обработке голосового сообщения:', error);
 //     await ctx.reply(
@@ -100,11 +100,11 @@ bot.on('message:audio', async (ctx) => {
 //   }
 // });
 
-bot.on('message:voice', async (ctx) => {
+// Единая функция для обработки аудио
+async function handleAudio(ctx, file) {
   try {
-    const fileId = ctx.message.voice.file_id;
-    const file = await ctx.api.getFile(fileId);
     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+    const mimeType = file.mime_type || 'audio/mpeg';
 
     const fetchedResponse = await fetch(fileLink);
     const data = await fetchedResponse.arrayBuffer();
@@ -113,7 +113,7 @@ bot.on('message:voice', async (ctx) => {
     const audioPrompt = [
       {
         inlineData: {
-          mimeType: 'audio/ogg',
+          mimeType: mimeType,
           data: base64Audio,
         },
       },
@@ -122,19 +122,25 @@ bot.on('message:voice', async (ctx) => {
       },
     ];
 
-    // Шаг 1: Получаем расшифровку от Gemini
     const result = await model.generateContent(audioPrompt);
     const text = result.response.text();
-
-    // Шаг 2: Отправляем расшифровку в основной текстовый обработчик
-    // Это как если бы пользователь сам написал этот текст
     await handleText(ctx, text);
   } catch (error) {
-    console.error('Ошибка при обработке голосового сообщения:', error);
+    console.error('Ошибка при обработке аудио:', error);
     await ctx.reply(
-      'Произошла ошибка при обработке голосового сообщения. Возможно, файл слишком большой.'
+      'Произошла ошибка при обработке аудио. Возможно, файл слишком большой.'
     );
   }
+}
+
+// Обработчик для MP3-файлов и других аудиоформатов
+bot.on('message:audio', async (ctx) => {
+  await handleAudio(ctx, ctx.message.audio);
+});
+
+// Обработчик для голосовых сообщений (voice)
+bot.on('message:voice', async (ctx) => {
+  await handleAudio(ctx, ctx.message.voice);
 });
 
 // Выносим логику обработки текста в отдельную функцию
@@ -149,21 +155,9 @@ async function handleText(ctx, prompt) {
   }
 }
 
-// Теперь обработчик для текстовых сообщений просто вызывает эту функцию
+// Обработчик для текстовых сообщений
 bot.on('message:text', async (ctx) => {
   await handleText(ctx, ctx.message.text);
 });
-
-// bot.on('message:text', async (ctx) => {
-//   const prompt = ctx.message.text;
-//   try {
-//     const result = await model.generateContent(prompt);
-//     const text = result.response.text();
-//     await ctx.reply(text);
-//   } catch (error) {
-//     console.error('Ошибка при вызове Gemini:', error);
-//     await ctx.reply('Произошла ошибка при обработке вашего запроса.');
-//   }
-// });
 
 export const POST = webhookCallback(bot, 'std/http');
