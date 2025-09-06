@@ -1,4 +1,3 @@
-// Эти настройки Vercel гарантируют, что функция не будет кэшироваться.
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
@@ -9,24 +8,20 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
-// Проверка наличия всех необходимых ключей
-if (!token) {
+if (!token)
   throw new Error('TELEGRAM_BOT_TOKEN environment variable not found.');
-}
 
-if (!geminiApiKey) {
+if (!geminiApiKey)
   throw new Error('GEMINI_API_KEY environment variable not found.');
-}
 
 // Инициализация бота и Gemini API
 const bot = new Bot(token);
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 
-// Выбираем самую стабильную модель.
-// Эта модель надежно работает со всеми API-ключами.
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+// Выбираем самую стабильную модель
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-// Обработчик текстовых сообщений
+// Обработчик сообщений
 bot.on('message:text', async (ctx) => {
   const prompt = ctx.message.text;
 
@@ -41,6 +36,5 @@ bot.on('message:text', async (ctx) => {
   }
 });
 
-// Экспорт POST-функции для обработки вебхуков.
-// Адаптер 'std/http' успешно работает с вашим проектом на Vercel.
+// Установка вебхука для Vercel Functions
 export const POST = webhookCallback(bot, 'std/http');
