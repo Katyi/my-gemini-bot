@@ -9,7 +9,7 @@ const bot = new Bot(BOT_TOKEN);
 
 // Инициализируем Gemini API
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
 // Обрабатываем все текстовые сообщения от пользователя
 bot.on('message:text', async (ctx) => {
