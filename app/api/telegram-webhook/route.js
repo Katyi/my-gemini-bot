@@ -39,7 +39,8 @@ bot.command('stable', async (ctx) => {
 
     // Запрос к Stable Diffusion через Replicate
     const image = await replicate.run(
-      'stability-ai/stable-diffusion:ac732df8398180b474fe8c581c6af2637a5ab6b57d2de6cd02216b22b10298a1',
+      // 'stability-ai/stable-diffusion:ac732df8398180b474fe8c581c6af2637a5ab6b57d2de6cd02216b22b10298a1',
+      'ideogram-ai/ideogram-v3-turbo',
       {
         input: {
           prompt: prompt,
