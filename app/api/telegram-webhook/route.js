@@ -37,20 +37,23 @@ bot.command('stable', async (ctx) => {
       'Генерирую изображение. Это может занять несколько секунд...'
     );
 
-    // Запрос к Stable Diffusion через Replicate
-    const image = await replicate.run(
-      // 'stability-ai/stable-diffusion:ac732df8398180b474fe8c581c6af2637a5ab6b57d2de6cd02216b22b10298a1',
-      // 'ideogram-ai/ideogram-v3-turbo',
+    // Запрос к Stable Diffusion через Replicate с дополнительными параметрами
+    const output = await replicate.run(
       'stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc',
       {
         input: {
           prompt: prompt,
+          width: 768, // Новые параметры
+          height: 768,
+          refine: 'expert_ensemble_refiner',
+          num_inference_steps: 25,
+          apply_watermark: false,
         },
       }
     );
 
-    if (image && image[0]) {
-      await ctx.replyWithPhoto(image[0]);
+    if (output && output[0]) {
+      await ctx.replyWithPhoto(output[0]);
     } else {
       await ctx.reply(
         'Не удалось сгенерировать изображение. Попробуйте еще раз.'
