@@ -3,6 +3,7 @@ export const fetchCache = 'force-no-store';
 
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import axios from 'axios';
 // import { fileUrl } from '@grammyjs/files'; // Импортируем fileUrl
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
