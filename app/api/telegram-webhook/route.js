@@ -18,7 +18,7 @@ if (!geminiApiKey)
 // Инициализация бота и Gemini
 const bot = new Bot(token);
 const genAI = new GoogleGenerativeAI(geminiApiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' }); // Выбираем модель
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' }); // Выбираем модель
 
 // Обработчик сообщений
 bot.on('message:text', async (ctx) => {
