@@ -3,7 +3,7 @@ export const fetchCache = 'force-no-store';
 
 import { Bot, webhookCallback } from 'grammy';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import axios from 'axios';
+// import axios from 'axios';
 // import { fileUrl } from '@grammyjs/files'; // Импортируем fileUrl
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -69,15 +69,8 @@ bot.on('message:audio', async (ctx) => {
     const file = await ctx.api.getFile(fileId);
     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-    // Скачиваем файл в буфер
-    const audioBuffer = (
-      await axios.get(fileLink, { responseType: 'arraybuffer' })
-    ).data;
-
-    // Отправляем аудиофайл
-    await ctx.replyWithAudio(new Uint8Array(audioBuffer), {
-      caption: 'Вот ваш аудиофайл.',
-    });
+    // Отправляем аудио по URL
+    await ctx.replyWithAudio(fileLink, { caption: 'Вот ваш аудиофайл.' });
   } catch (error) {
     console.error('Ошибка при обработке аудио:', error);
     await ctx.reply('Произошла ошибка при обработке аудио.');
@@ -91,13 +84,8 @@ bot.on('message:voice', async (ctx) => {
     const file = await ctx.api.getFile(fileId);
     const fileLink = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
 
-    // Скачиваем файл в буфер
-    const voiceBuffer = (
-      await axios.get(fileLink, { responseType: 'arraybuffer' })
-    ).data;
-
-    // Отправляем голосовое сообщение
-    await ctx.replyWithVoice(new Uint8Array(voiceBuffer), {
+    // Отправляем голосовое сообщение по URL
+    await ctx.replyWithVoice(fileLink, {
       caption: 'Вот ваше голосовое сообщение.',
     });
   } catch (error) {
